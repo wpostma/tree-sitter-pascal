@@ -925,6 +925,7 @@ module.exports = grammar({
 		declArg:         $ => choice(
 			seq(
 				choice($.kVar, $.kConst, $.kOut, $.kConstref),
+				...enable_if(rtti, optional($.rttiAttributes)),
 				field('name', delimited1($.identifier)),
 				optional(seq(
 					':', field('type', $.type),
