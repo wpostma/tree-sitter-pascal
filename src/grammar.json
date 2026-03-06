@@ -6889,6 +6889,14 @@
                 ]
               },
               {
+                "type": "SYMBOL",
+                "name": "kReadonly"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "kWriteonly"
+              },
+              {
                 "type": "SEQ",
                 "members": [
                   {
@@ -8900,6 +8908,16 @@
     "kWrite": {
       "type": "PATTERN",
       "value": "write",
+      "flags": "i"
+    },
+    "kReadonly": {
+      "type": "PATTERN",
+      "value": "readonly",
+      "flags": "i"
+    },
+    "kWriteonly": {
+      "type": "PATTERN",
+      "value": "writeonly",
       "flags": "i"
     },
     "kImplements": {
