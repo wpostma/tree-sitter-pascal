@@ -5036,6 +5036,10 @@
           {
             "type": "literalString",
             "named": true
+          },
+          {
+            "type": "varAssignDef",
+            "named": true
           }
         ]
       }
