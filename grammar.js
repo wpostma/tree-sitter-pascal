@@ -796,7 +796,8 @@ module.exports = grammar({
 			optional($._classDeclarations),
 			repeat($.declSection),
 			optional($.declVariant),
-			$.kEnd
+			$.kEnd,
+			...enable_if(delphi, optional(seq($.kAlign, '(', $._expr, ')')))
 		),
 
 		declSection:     $ => seq(
@@ -1078,6 +1079,7 @@ module.exports = grammar({
 		kOf:               $ => /of/i,
 		kHelper:           $ => /helper/i,
 		kPacked:           $ => /packed/i,
+		kAlign:            $ => /align/i,
 
 		kGeneric:          $ => /generic/i,
 		kSpecialize:       $ => /specialize/i,

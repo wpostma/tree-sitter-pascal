@@ -6712,6 +6712,35 @@
         {
           "type": "SYMBOL",
           "name": "kEnd"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "kAlign"
+                },
+                {
+                  "type": "STRING",
+                  "value": "("
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "_expr"
+                },
+                {
+                  "type": "STRING",
+                  "value": ")"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
@@ -9169,6 +9198,11 @@
     "kPacked": {
       "type": "PATTERN",
       "value": "packed",
+      "flags": "i"
+    },
+    "kAlign": {
+      "type": "PATTERN",
+      "value": "align",
       "flags": "i"
     },
     "kGeneric": {
