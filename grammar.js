@@ -373,7 +373,7 @@ module.exports = grammar({
 			///([a-zA-Z0-9_]+([eE][nN][dD])|[eE][nN][dD][a-zA-Z0-9_]+|([^eE]|[eE][^nN]|[eE][nN][^dD]))+/,
 			$.identifier,       // Identifiers
 			/[0-9a-fA-F]/,      // Numbers
-			/[.,:;+\-*\[\]<>&%$]/, // Punctuation
+			/[.,:;+\-*\[\]<>&%$@]/, // Punctuation (@ for local labels)
 			/\([^*]|\)/         // Parentheses that are not comments
 		)),
 

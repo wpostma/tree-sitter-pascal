@@ -7278,6 +7278,7 @@ static bool ts_lex(TSLexer *lexer, TSStateId state) {
           lookahead == '%' ||
           ('*' <= lookahead && lookahead <= '<') ||
           lookahead == '>' ||
+          lookahead == '@' ||
           lookahead == '[' ||
           lookahead == ']') ADVANCE(52);
       if (('G' <= lookahead && lookahead <= 'Z') ||
