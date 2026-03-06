@@ -1462,9 +1462,53 @@
       }
     },
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "kCdecl",
+          "named": true
+        },
+        {
+          "type": "kCppdecl",
+          "named": true
+        },
+        {
+          "type": "kFar",
+          "named": true
+        },
+        {
+          "type": "kMwpascal",
+          "named": true
+        },
+        {
+          "type": "kNear",
+          "named": true
+        },
+        {
+          "type": "kPascal",
+          "named": true
+        },
+        {
+          "type": "kRegister",
+          "named": true
+        },
+        {
+          "type": "kSafecall",
+          "named": true
+        },
+        {
+          "type": "kStdcall",
+          "named": true
+        },
+        {
+          "type": "kVectorcall",
+          "named": true
+        },
+        {
+          "type": "kWinapi",
+          "named": true
+        },
         {
           "type": "rttiAttributes",
           "named": true
@@ -1901,7 +1945,27 @@
       "required": true,
       "types": [
         {
+          "type": "kCdecl",
+          "named": true
+        },
+        {
+          "type": "kCppdecl",
+          "named": true
+        },
+        {
+          "type": "kFar",
+          "named": true
+        },
+        {
           "type": "kFunction",
+          "named": true
+        },
+        {
+          "type": "kMwpascal",
+          "named": true
+        },
+        {
+          "type": "kNear",
           "named": true
         },
         {
@@ -1913,6 +1977,10 @@
           "named": true
         },
         {
+          "type": "kPascal",
+          "named": true
+        },
+        {
           "type": "kProcedure",
           "named": true
         },
@@ -1921,7 +1989,27 @@
           "named": true
         },
         {
+          "type": "kRegister",
+          "named": true
+        },
+        {
+          "type": "kSafecall",
+          "named": true
+        },
+        {
+          "type": "kStdcall",
+          "named": true
+        },
+        {
           "type": "kTo",
+          "named": true
+        },
+        {
+          "type": "kVectorcall",
+          "named": true
+        },
+        {
+          "type": "kWinapi",
           "named": true
         }
       ]
@@ -2361,7 +2449,7 @@
       },
       "type": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "type",
@@ -2407,11 +2495,19 @@
           "named": true
         },
         {
+          "type": "kReadonly",
+          "named": true
+        },
+        {
           "type": "kStored",
           "named": true
         },
         {
           "type": "kWrite",
+          "named": true
+        },
+        {
+          "type": "kWriteonly",
           "named": true
         },
         {
@@ -2715,7 +2811,15 @@
       "required": true,
       "types": [
         {
+          "type": "kIn",
+          "named": true
+        },
+        {
           "type": "kUses",
+          "named": true
+        },
+        {
+          "type": "literalString",
           "named": true
         },
         {
@@ -6734,7 +6838,7 @@
     "fields": {
       "exception": {
         "multiple": true,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "exprBinary",
@@ -8747,6 +8851,10 @@
     "named": true
   },
   {
+    "type": "kReadonly",
+    "named": true
+  },
+  {
     "type": "kRecord",
     "named": true
   },
@@ -8908,6 +9016,10 @@
   },
   {
     "type": "kWrite",
+    "named": true
+  },
+  {
+    "type": "kWriteonly",
     "named": true
   },
   {

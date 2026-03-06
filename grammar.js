@@ -641,7 +641,7 @@ module.exports = grammar({
 
 		// Declaration sections
 
-		declUses:        $ => seq($.kUses, delimited($.moduleName), ';'),
+		declUses:        $ => seq($.kUses, delimited(seq($.moduleName, optional(seq($.kIn, $.literalString)))), ';'),
 		declExports:     $ => seq($.kExports, delimited($.declExport), ';'),
 
 		declTypes:       $ => seq(
