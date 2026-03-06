@@ -4600,6 +4600,10 @@
         {
           "type": "SYMBOL",
           "name": "literalChar"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "literalCtrlChar"
         }
       ]
     },
@@ -4615,6 +4619,10 @@
           "name": "_literalInt"
         }
       ]
+    },
+    "literalCtrlChar": {
+      "type": "PATTERN",
+      "value": "\\^[A-Za-z@\\[\\\\\\]\\^_]"
     },
     "literalNumber": {
       "type": "CHOICE",

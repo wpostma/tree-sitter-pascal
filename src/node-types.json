@@ -6370,6 +6370,10 @@
         {
           "type": "literalChar",
           "named": true
+        },
+        {
+          "type": "literalCtrlChar",
+          "named": true
         }
       ]
     }
@@ -9180,6 +9184,10 @@
   },
   {
     "type": "kXor",
+    "named": true
+  },
+  {
+    "type": "literalCtrlChar",
     "named": true
   },
   {

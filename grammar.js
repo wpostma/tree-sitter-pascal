@@ -581,8 +581,9 @@ module.exports = grammar({
 			$.kNil, $.kTrue, $.kFalse
 		),
 		literalString:   $ => repeat1($._literalString),
-		_literalString:  $ => choice(/'[^']*'/, $.literalChar),
+		_literalString:  $ => choice(/'[^']*'/, $.literalChar, $.literalCtrlChar),
 		literalChar:     $ => seq('#', $._literalInt),
+		literalCtrlChar: $ => /\^[A-Za-z@\[\\\]\^_]/,
 		literalNumber:   $ => choice($._literalInt, $._literalFloat),
 		_literalInt:     $ => choice(
 			token.immediate(/[-+]?[0-9]+/),
