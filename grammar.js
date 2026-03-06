@@ -737,8 +737,17 @@ module.exports = grammar({
 				':',
 				field('type', $.typeref),
 			)),
-			optional(seq($.kOf, $.kObject))
+			optional(seq($.kOf, $.kObject)),
+			optional($._callingConvention)
 		)),
+
+		_callingConvention: $ => choice(
+			$.kStdcall, $.kCdecl, $.kPascal, $.kRegister,
+			$.kSafecall, $.kFar, $.kNear,
+			...enable_if(fpc,
+				$.kCppdecl, $.kMwpascal, $.kWinapi, $.kVectorcall
+			)
+		),
 
 		declMetaClass:   $ => seq($.kClass, $.kOf, $.typeref),
 
@@ -805,7 +814,8 @@ module.exports = grammar({
 			':',
 			field('type', $.type),
 			field('defaultValue', optional($.defaultValue)),
-			';'
+			';',
+			optional(seq($._callingConvention, ';'))
 		),
 
 		declProp:        $ => seq(

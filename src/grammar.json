@@ -6071,9 +6071,70 @@
                 "type": "BLANK"
               }
             ]
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "_callingConvention"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
           }
         ]
       }
+    },
+    "_callingConvention": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "kStdcall"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kCdecl"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kPascal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kRegister"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kSafecall"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kFar"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kNear"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kCppdecl"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kMwpascal"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kWinapi"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "kVectorcall"
+        }
+      ]
     },
     "declMetaClass": {
       "type": "SEQ",
@@ -6732,6 +6793,27 @@
         {
           "type": "STRING",
           "value": ";"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_callingConvention"
+                },
+                {
+                  "type": "STRING",
+                  "value": ";"
+                }
+              ]
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
         }
       ]
     },
