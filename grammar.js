@@ -885,6 +885,10 @@ module.exports = grammar({
 				field('type', $.typeref),
 			)),
 			field('assign', optional($.defaultValue)),
+			// Calling convention can appear before or after the semicolon:
+			//   function Foo: HResult stdcall;   (before)
+			//   function Foo: HResult; stdcall;  (after, via _procAttributeNoExt)
+			optional($._callingConvention),
 			';',
 			repeat($._procAttributeNoExt)
 		),

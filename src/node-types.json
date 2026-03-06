@@ -2025,6 +2025,10 @@
       "required": true,
       "types": [
         {
+          "type": "kCdecl",
+          "named": true
+        },
+        {
           "type": "kClass",
           "named": true
         },
@@ -2033,7 +2037,15 @@
           "named": true
         },
         {
+          "type": "kCppdecl",
+          "named": true
+        },
+        {
           "type": "kDestructor",
+          "named": true
+        },
+        {
+          "type": "kFar",
           "named": true
         },
         {
@@ -2049,11 +2061,43 @@
           "named": true
         },
         {
+          "type": "kMwpascal",
+          "named": true
+        },
+        {
+          "type": "kNear",
+          "named": true
+        },
+        {
           "type": "kOperator",
           "named": true
         },
         {
+          "type": "kPascal",
+          "named": true
+        },
+        {
           "type": "kProcedure",
+          "named": true
+        },
+        {
+          "type": "kRegister",
+          "named": true
+        },
+        {
+          "type": "kSafecall",
+          "named": true
+        },
+        {
+          "type": "kStdcall",
+          "named": true
+        },
+        {
+          "type": "kVectorcall",
+          "named": true
+        },
+        {
+          "type": "kWinapi",
           "named": true
         },
         {
