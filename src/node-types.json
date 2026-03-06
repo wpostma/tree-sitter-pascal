@@ -2344,6 +2344,10 @@
         "required": false,
         "types": [
           {
+            "type": "exprDot",
+            "named": true
+          },
+          {
             "type": "identifier",
             "named": true
           }
@@ -2515,6 +2519,10 @@
         "multiple": true,
         "required": false,
         "types": [
+          {
+            "type": "exprDot",
+            "named": true
+          },
           {
             "type": "identifier",
             "named": true

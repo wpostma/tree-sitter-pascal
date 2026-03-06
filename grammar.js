@@ -830,8 +830,8 @@ module.exports = grammar({
 			repeat(choice(
 				seq($.kIndex, field('index', $._expr)),
 				...enable_if(delphi, seq($.kDispId, field('dispid', $._expr))),
-				seq($.kRead, field('getter', $.identifier)),
-				seq($.kWrite, field('setter', $.identifier)),
+				seq($.kRead, field('getter', choice($.exprDot, $.identifier))),
+				seq($.kWrite, field('setter', choice($.exprDot, $.identifier))),
 				...enable_if(delphi, $.kReadonly, $.kWriteonly),
 				seq($.kImplements, field('implements', delimited($._expr))),
 				seq($.kDefault, field('defaultValue', $._expr)),
