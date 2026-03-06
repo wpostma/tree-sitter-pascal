@@ -292,6 +292,10 @@ module.exports = grammar({
 		// make sense, but for Treesitter it does), so we need another conflict
 		// here.
 		//...enable_if(lambda, [ $.lambda ]),
+		// Anonymous record fields vs regular record fields share the same
+		// shape (identifier ':' type ';'). GLR resolves by context: inside
+		// declAnonRecord vs declClass.
+		[$.declAnonField, $.declField],
 	],
 
 	rules: {
@@ -529,12 +533,13 @@ module.exports = grammar({
 			$.declFile,
 			$.declString,
 			$.declProcRef,
+			$.declAnonRecord,
 		)),
 
 		typeref:         $ => seq(
 			...enable_if(fpc, field('_dummy', optional($.kSpecialize))),
 			$._typeref,
-			...enable_if(delphi, optional(seq($.kDeprecated, $._expr))),
+			...enable_if(delphi, optional(seq($.kDeprecated, optional($.literalString)))),
 		),
 
 		_typeref:        $ => choice(
@@ -741,6 +746,27 @@ module.exports = grammar({
 			optional(seq($.kOf, $.kObject)),
 			optional($._callingConvention)
 		)),
+
+		// Anonymous record — a restricted construct for inline record types
+		// (e.g. field: record a: Integer; b: Integer; end).
+		// Deliberately excludes methods, properties, visibility sections, and
+		// variant parts. Uses $.type for field types (nesting is technically
+		// possible but each nested record has its own end, so no ambiguity).
+
+		declAnonField:   $ => seq(
+			field('name', delimited1($.identifier)),
+			':',
+			field('type', $.type),
+			field('defaultValue', optional($.defaultValue)),
+			';',
+		),
+
+		declAnonRecord:  $ => seq(
+			optional($.kPacked),
+			$.kRecord,
+			repeat1($.declAnonField),
+			$.kEnd,
+		),
 
 		_callingConvention: $ => choice(
 			$.kStdcall, $.kCdecl, $.kPascal, $.kRegister,
