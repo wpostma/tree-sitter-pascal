@@ -2505,6 +2505,10 @@
             {
               "type": "SYMBOL",
               "name": "_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "label"
             }
           ]
         }

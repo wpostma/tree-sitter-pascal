@@ -363,7 +363,7 @@ module.exports = grammar({
 		_statements:     $ => repeat1(choice($.varDef, $._statement,  $.label)),
 		_statementsTr:   $ => seq(
 			repeat(choice($._statement, $.label)),
-			choice(tr($,'_statement'), $._statement)
+			choice(tr($,'_statement'), $._statement, $.label)
 		),
 
 		statements:      $ => $._statements,
