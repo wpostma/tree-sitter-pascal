@@ -233,6 +233,7 @@ function statements(trailing) {
 		[rn('raise'),       $ => seq(
 			$.kRaise,
 			field('exception', optional($._expr)),
+			optional(seq($.kAtAddr, field('address', $._expr))),
 			...semicolon
 		)],
 
@@ -1202,6 +1203,7 @@ module.exports = grammar({
 		kExternal:         $ => /external/i,
 		kName:             $ => /name/i,
 		kMessage:          $ => /message/i,
+		kAtAddr:           $ => /at/i,
 		kDeprecated:       $ => /deprecated/i,
 		kExperimental:     $ => /experimental/i,
 		kPlatform:         $ => /platform/i,
