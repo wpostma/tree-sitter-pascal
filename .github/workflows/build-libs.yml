@@ -1,5 +1,8 @@
 name: Build Native Libraries
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     tags:
@@ -167,10 +170,14 @@ jobs:
       - name: Install dependencies
         run: cd bindings/node && npm install
 
-      - name: Build WASM grammars
+      - name: Build WASM grammar
         shell: pwsh
         run: |
-          .\scripts\build.ps1 -Platforms WASM -Grammars
+          .\scripts\build.ps1 -Platforms WASM
+
+      - name: Copy tree-sitter core WASM
+        run: |
+          cp bindings/node/node_modules/tree-sitter-cli/tree-sitter.wasm Libs/WASM/tree-sitter.wasm
 
       - name: Upload WASM artifacts
         uses: actions/upload-artifact@v4

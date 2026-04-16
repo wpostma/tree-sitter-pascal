@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tree-sitter-pascal"
 description = "Pascal grammar for tree-sitter"
-version = "0.9.1"
+version = "0.10.2"
 keywords = ["incremental", "parsing", "tree-sitter", "pascal"]
 classifiers = [
   "Intended Audience :: Developers",
@@ -17,15 +17,13 @@ classifiers = [
 requires-python = ">=3.8"
 license.text = "MIT"
 readme = "../../README.md"
-dependencies = [
-    "langchain>=0.0.27",
-]
+dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/tree-sitter/tree-sitter-pascal"
+Homepage = "https://github.com/jimmckeeth/tree-sitter-pascal"
 
 [project.optional-dependencies]
-core = ["tree-sitter~=0.21"]
+core = ["tree-sitter~=0.22"]
 
 [tool.cibuildwheel]
 build = "cp38-*"

@@ -4,7 +4,9 @@
       "Bash(npx tree-sitter:*)",
       "Bash(node:*)",
       "Bash(gh run:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(gh release:*)",
+      "Bash(git -C /e/Jim/Documents/Git/delphi-tree-sitter/tree-sitter-pascal ls-files Libs/)"
     ]
   }
 }

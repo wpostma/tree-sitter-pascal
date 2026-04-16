@@ -32,13 +32,30 @@ A [Tree-sitter](https://github.com/tree-sitter/tree-sitter) grammar supporting P
 - Syntax highlighting
 - Scopes
 
+## Pre-built Binaries
+
+Pre-built native libraries for all supported platforms are published with each [GitHub Release](https://github.com/jimmckeeth/tree-sitter-pascal/releases/latest):
+
+| Platform             | File                                   |
+| :------------------- | :------------------------------------- |
+| Windows x86 (32-bit) | `tree-sitter-pascal-windows-x86.dll`   |
+| Windows x64 (64-bit) | `tree-sitter-pascal-windows-x64.dll`   |
+| Linux x64            | `tree-sitter-pascal-linux-x64.so`      |
+| macOS Intel          | `tree-sitter-pascal-macos-x64.dylib`   |
+| macOS Apple Silicon  | `tree-sitter-pascal-macos-arm64.dylib` |
+| WebAssembly          | `tree-sitter-pascal.wasm`              |
+
+The `tree-sitter.wasm` core runtime (required for WASM use) is available from the [tree-sitter releases](https://github.com/tree-sitter/tree-sitter/releases).
+
 ## Repository Organization
 
 To keep the root directory clean, the repository is organized as follows:
 
-- **`bindings/`**: Contains language-specific bindings and their package manager files (e.g., `package.json`, `setup.py`, `Cargo.toml`).
+- **`bindings/`**: Contains language-specific bindings and their package manager files (e.g., `package.json`, `setup.py`, `Cargo.toml`). Includes bindings for C, Go, Node.js, Python, Rust, and Swift.
+- **`docs/`**: Documentation, auto-generated rule coverage (`rules.md`), and branding assets.
+- **`Libs/`**: Local cache of pre-built native libraries (populated by `scripts/build.ps1`). Release artifacts are published to [GitHub Releases](https://github.com/jimmckeeth/tree-sitter-pascal/releases/latest).
 - **`scripts/`**: Contains utility scripts for building (`build.ps1`), cleaning (`clean.ps1`), and checking prerequisites (`ensure-prereq.ps1`).
-- **`src/`**: The generated C parser and header files.
+- **`src/`**: The generated C parser and header files. Edit `grammar.js`, not these files directly.
 - **`queries/`**: Tree-sitter query files for syntax highlighting and local variables.
 - **`test/`**: The test corpus and fuzzing scripts.
 - **`examples/`**: Example Pascal files for testing and demonstration.
