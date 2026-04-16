@@ -2,42 +2,6 @@
 .SYNOPSIS
     Builds tree-sitter and grammar shared libraries for all Delphi-supported
     platforms using the Zig cross-compiler, and WASM using tree-sitter-cli.
-
-.DESCRIPTION
-    1. Compiles tree-sitter core and tree-sitter-pascal from submodule sources.
-    2. Builds WASM grammar using Emscripten/tree-sitter-cli.
-    3. Optionally builds extra grammar DLLs (C, Python, TypeScript, JavaScript,
-       JSON) by cloning their repos into GrammarsCache/.
-    4. Copies all built libraries to:
-         Libs/<platform>/              - canonical output (used for releases)
-         Examples/bin/<platform>/Debug/
-         Examples/bin/<platform>/Release/
-         Tests/<platform>/Debug/       (Win32 and Win64 only)
-
-.PARAMETER Platforms
-    One or more platform names to build. Defaults to all desktop platforms + WASM.
-    Valid: Win32, Win64, Linux64, macOS-x64, macOS-arm64, Android, Android64,
-           iOSDevice64, WASM
-
-.PARAMETER Clean
-    Remove Libs/<platform>/ output directories before building.
-
-.PARAMETER Grammars
-    Also build extra language grammar DLLs (C, Python, TypeScript, JavaScript,
-    JSON). Clones repos into GrammarsCache/ on first run.
-
-.PARAMETER GrammarsCache
-    Directory where grammar repos are cloned/cached.
-    Defaults to <RepoRoot>/GrammarsCache.
-
-.NOTES
-    Requires zig (https://ziglang.org) on PATH for native libs.
-    Requires emscripten (emcc) and tree-sitter-cli for WASM.
-
-.EXAMPLE
-    .\build.ps1 -Platforms Win32,Win64,WASM
-    .\build.ps1 -Platforms Win32,Win64 -Grammars
-    .\build.ps1 -Clean -Grammars
 #>
 param(
     [ValidateSet('Win32','Win64','Linux64','macOS-x64','macOS-arm64','Android','Android64','iOSDevice64','WASM')]
@@ -64,15 +28,32 @@ if ($GrammarsCache -eq '') {
     $GrammarsCache = Join-Path $TsPascalDir 'GrammarsCache'
 }
 
-# Verify submodules are initialized
-if (-not (Test-Path $TsCoreSrc)) {
-    Write-Error "tree-sitter submodule not found. Run: git submodule update --init --recursive"
-}
-if (-not (Test-Path $PascalSrc)) {
-    Write-Error "tree-sitter-pascal source not found. Run: npm run build"
+function Get-TreeSitterCmd {
+    $localTs = Join-Path $TsPascalDir "bindings/node/node_modules/.bin/tree-sitter"
+    if (Test-Path $localTs) { return $localTs }
+    $cmd = Get-Command tree-sitter -ErrorAction SilentlyContinue
+    if ($null -ne $cmd) { return "tree-sitter" }
+    return "npx tree-sitter"
 }
 
-# Platform definitions: zig target, output file names
+$TS_CMD = Get-TreeSitterCmd
+Write-Host "Using tree-sitter command: $TS_CMD" -ForegroundColor Gray
+
+function Activate-Emsdk {
+    $envScript = Join-Path $TsPascalDir "emsdk\emsdk_env.ps1"
+    if (Test-Path $envScript) {
+        Write-Host "  Activating emsdk environment..." -ForegroundColor Gray
+        . $envScript
+    }
+}
+
+if (-not (Test-Path $TsCoreSrc)) {
+    Write-Error "tree-sitter submodule not found."
+}
+if (-not (Test-Path $PascalSrc)) {
+    Write-Error "tree-sitter-pascal source not found."
+}
+
 $AllPlatforms = [ordered]@{
     'Win32'       = @{ Target = 'x86-windows-gnu';    Core = 'tree-sitter.dll';         Pascal = 'tree-sitter-pascal.dll'     }
     'Win64'       = @{ Target = 'x86_64-windows-gnu'; Core = 'tree-sitter.dll';         Pascal = 'tree-sitter-pascal.dll'     }
@@ -85,9 +66,6 @@ $AllPlatforms = [ordered]@{
     'WASM'        = @{ Target = 'wasm32-unknown-emscripten'; Core = 'tree-sitter.wasm'; Pascal = 'tree-sitter-pascal.wasm' }
 }
 
-# Extra grammar repos.
-# SrcSubDir: subdirectory inside the cloned repo containing parser.c.
-# Grammars with scanner.c / scanner.cc have those compiled in automatically.
 $ExtraGrammars = [ordered]@{
     'c'          = @{ Repo = 'tree-sitter/tree-sitter-c';          SrcSubDir = 'src'            }
     'python'     = @{ Repo = 'tree-sitter/tree-sitter-python';     SrcSubDir = 'src'            }
@@ -105,13 +83,8 @@ if ($Clean) {
         $dir = Join-Path $OutRoot $key
         if (Test-Path $dir) { Remove-Item $dir -Recurse -Force }
     }
-    Write-Host "Cleaned platform output directories." -ForegroundColor Yellow
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Get the library filename for a grammar on a given platform.
-# Uses the same prefix/extension convention as the core/pascal libs.
-# ─────────────────────────────────────────────────────────────────────────────
 function Get-GrammarLibName([string]$Lang, [hashtable]$PlatInfo) {
     $core = $PlatInfo.Core
     if ($core -like '*.dll')   { return "tree-sitter-$Lang.dll"          }
@@ -120,42 +93,30 @@ function Get-GrammarLibName([string]$Lang, [hashtable]$PlatInfo) {
     return "libtree-sitter-$Lang.so"
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Clone a grammar repo into GrammarsCache (no-op if already present).
-# ─────────────────────────────────────────────────────────────────────────────
 function Ensure-GrammarRepo([string]$Lang, [string]$Repo) {
     $dest = Join-Path $GrammarsCache $Lang
-    if (Test-Path (Join-Path $dest '.git')) {
-        Write-Host "    [cached] $Lang" -ForegroundColor DarkGray
-        return $true
-    }
-    Write-Host "    Cloning $Repo ..."
+    if (Test-Path (Join-Path $dest '.git')) { return $true }
     & git clone --depth 1 "https://github.com/$Repo.git" $dest 2>&1
     return ($LASTEXITCODE -eq 0)
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Build one extra grammar for one platform.
-# Automatically includes scanner.c / scanner.cc alongside parser.c.
-# ─────────────────────────────────────────────────────────────────────────────
 function Build-Grammar([string]$Lang, [string]$SrcSubDir, [string]$OutDir, [hashtable]$PlatInfo) {
     $repoDir = Join-Path $GrammarsCache $Lang
     $srcDir  = Join-Path $repoDir (($SrcSubDir -replace '/', [System.IO.Path]::DirectorySeparatorChar))
     $parser  = Join-Path $srcDir 'parser.c'
     if (-not (Test-Path $parser)) {
-        Write-Warning "    No parser.c at $srcDir — skipping $Lang"
+        Write-Warning "    No parser.c at $srcDir"
         return $false
     }
 
     $outFile = Get-GrammarLibName $Lang $PlatInfo
     $outPath = Join-Path $OutDir $outFile
-    Write-Host "    $Lang -> $outFile"
 
     if ($PlatInfo.Target -eq 'wasm32-unknown-emscripten') {
+        Activate-Emsdk
         Push-Location $repoDir
-        # Try building with npx tree-sitter build --wasm.
-        # If emcc is not in path, tree-sitter-cli might try docker/podman which often fails.
-        & npx tree-sitter build --wasm 2>&1
+        if ($TS_CMD -eq "npx tree-sitter") { & npx tree-sitter build --wasm 2>&1 }
+        else { & $TS_CMD build --wasm 2>&1 }
         $wasmFile = "tree-sitter-$Lang.wasm"
         if (Test-Path $wasmFile) {
             Move-Item $wasmFile $outPath -Force
@@ -166,47 +127,30 @@ function Build-Grammar([string]$Lang, [string]$SrcSubDir, [string]$OutDir, [hash
         return $false
     }
 
-    $sources = [System.Collections.Generic.List[string]]::new()
+    $sources = New-Object System.Collections.Generic.List[string]
     $sources.Add($parser)
-
-    # Include external scanner if present (C or C++)
     $scannerC  = Join-Path $srcDir 'scanner.c'
     $scannerCC = Join-Path $srcDir 'scanner.cc'
-    if (Test-Path $scannerC)  { $sources.Add($scannerC);  Write-Host "      + scanner.c"  -ForegroundColor DarkGray }
-    if (Test-Path $scannerCC) { $sources.Add($scannerCC); Write-Host "      + scanner.cc" -ForegroundColor DarkGray }
+    if (Test-Path $scannerC)  { $sources.Add($scannerC) }
+    if (Test-Path $scannerCC) { $sources.Add($scannerCC) }
 
-    $args = @('cc', '-shared', '-o', $outPath) `
-          + $sources.ToArray() `
-          + @("-I$srcDir", "-I$TsCoreInclude", '-target', $PlatInfo.Target, '-O2')
-
+    $args = @('cc', '-shared', '-o', $outPath) + $sources.ToArray() + @("-I$srcDir", "-I$TsCoreInclude", '-target', $PlatInfo.Target, '-O2')
     & zig @args 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "    FAILED: $Lang ($($PlatInfo.Target))" -ForegroundColor Red
-        return $false
-    }
-    return $true
+    return ($LASTEXITCODE -eq 0)
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Copy all .dll / .so / .dylib from SrcDir to Delphi output directories.
-# ─────────────────────────────────────────────────────────────────────────────
 function Deploy-Libs([string]$Plat, [string]$SrcDir) {
     $platMap = @{ 'Win32' = 'Win32'; 'Win64' = 'Win64' }
     if (-not $platMap.ContainsKey($Plat)) { return }
     $dp = $platMap[$Plat]
-
-    # Collect the native lib extension for this platform
     $ext = switch -Wildcard ($AllPlatforms[$Plat].Core) {
         '*.dll'   { '*.dll'   }
         '*.dylib' { '*.dylib' }
         '*.wasm'  { '*.wasm'  }
         default   { '*.so'    }
     }
-
-    $libs = @(Get-ChildItem $SrcDir -Filter $ext -ErrorAction SilentlyContinue)
-    if ($libs.Count -eq 0) { return }
-
-    # Try to deploy to sibling project directories if they exist
+    $libs = Get-ChildItem $SrcDir -Filter $ext -ErrorAction SilentlyContinue
+    if ($null -eq $libs) { return }
     $targets = @(
         "$RepoRoot\Examples\bin\$dp\Debug",
         "$RepoRoot\Examples\bin\$dp\Release",
@@ -215,120 +159,66 @@ function Deploy-Libs([string]$Plat, [string]$SrcDir) {
         "$TsPascalDir\examples\bin\$dp\Debug",
         "$TsPascalDir\examples\bin\$dp\Release"
     )
-
     foreach ($dir in $targets) {
         if (-not (Test-Path (Split-Path $dir -Parent))) { continue }
-        if (-not (Test-Path $dir)) {
-            New-Item -ItemType Directory -Path $dir -Force | Out-Null
-        }
-        foreach ($lib in $libs) {
-            Copy-Item $lib.FullName (Join-Path $dir $lib.Name) -Force
-        }
-        Write-Host "  -> $dir" -ForegroundColor DarkGray
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+        foreach ($lib in $libs) { Copy-Item $lib.FullName (Join-Path $dir $lib.Name) -Force }
     }
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Main build loop
-# ─────────────────────────────────────────────────────────────────────────────
-$failed = [System.Collections.Generic.List[string]]::new()
+$failed = New-Object System.Collections.Generic.List[string]
 
 foreach ($plat in $Platforms) {
     $info   = $AllPlatforms[$plat]
     $outDir = Join-Path $OutRoot $plat
-    if (-not (Test-Path $outDir)) {
-        New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-    }
+    if (-not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
 
-    Write-Host "`n=== Building $plat ($($info.Target)) ===" -ForegroundColor Cyan
+    Write-Host "=== Building $plat ($($info.Target)) ===" -ForegroundColor Cyan
 
     if ($plat -eq 'WASM') {
-        # ── tree-sitter-pascal (WASM) ─────────────────────────────────────────
-        Write-Host "  pascal (wasm) -> tree-sitter-pascal.wasm"
-
-        # Automatically activate emsdk if it exists in the root
-        $envScript = Join-Path $TsPascalDir "emsdk\emsdk_env.ps1"
-        if (Test-Path $envScript) {
-            Write-Host "  Activating emsdk environment..." -ForegroundColor Gray
-            . $envScript
-        }
-
-        # tree-sitter-cli on Windows might try to use Podman/Docker if emcc is not found.
-        # We try to detect emcc first.
-        $emccPath = Get-Command emcc -ErrorAction SilentlyContinue
-        if ($null -eq $emccPath) {
-            Write-Warning "  emcc not found in PATH. tree-sitter-cli might try to use Podman/Docker which could fail."
-        }
-
-        & npx tree-sitter build --wasm 2>&1
+        Activate-Emsdk
+        if ($TS_CMD -eq "npx tree-sitter") { & npx tree-sitter build --wasm 2>&1 }
+        else { & $TS_CMD build --wasm 2>&1 }
         $wasmFile = "tree-sitter-pascal.wasm"
         if (-not (Test-Path $wasmFile)) {
-            # Sometimes it might be named tree-sitter-pascal.wasm depending on tree-sitter.json or version
-            # Let's check for any .wasm file in current dir if the specific one is missing.
             $foundWasm = Get-ChildItem "*.wasm" | Select-Object -First 1
             if ($null -ne $foundWasm) { $wasmFile = $foundWasm.Name }
         }
-
-        if (Test-Path $wasmFile) {
-            Move-Item $wasmFile (Join-Path $outDir "tree-sitter-pascal.wasm") -Force
+        if (Test-Path $wasmFile) { 
+            Move-Item $wasmFile (Join-Path $outDir "tree-sitter-pascal.wasm") -Force 
             Write-Host "  OK" -ForegroundColor Green
-        } else {
+        }
+        else { 
             Write-Host "  FAILED: pascal (wasm) - No WASM file generated." -ForegroundColor Red
-            $failed.Add("$plat/pascal"); continue
+            $failed.Add("$plat/pascal"); continue 
         }
     } else {
-        # ── tree-sitter core ──────────────────────────────────────────────────
         $coreOut = Join-Path $outDir $info.Core
-        Write-Host "  core -> $($info.Core)"
-        $args = @('cc', '-shared', '-o', $coreOut, $TsCoreSrc,
-                  "-I$TsCoreInclude", "-I$TsCoreSrcDir", '-target', $info.Target, '-O2')
-        & zig @args 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "  FAILED: core" -ForegroundColor Red
-            $failed.Add("$plat/core"); continue
-        }
-
-        # ── tree-sitter-pascal ────────────────────────────────────────────────
+        & zig cc -shared -o $coreOut $TsCoreSrc "-I$TsCoreInclude" "-I$TsCoreSrcDir" -target $info.Target -O2 2>&1
+        if ($LASTEXITCODE -ne 0) { $failed.Add("$plat/core"); continue }
         $pascalOut = Join-Path $outDir $info.Pascal
-        Write-Host "  pascal -> $($info.Pascal)"
-        $args = @('cc', '-shared', '-o', $pascalOut, $PascalSrc,
-                  "-I$PascalInclude", '-target', $info.Target, '-O2')
-        & zig @args 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "  FAILED: pascal" -ForegroundColor Red
-            $failed.Add("$plat/pascal"); continue
-        }
+        & zig cc -shared -o $pascalOut $PascalSrc "-I$PascalInclude" -target $info.Target -O2 2>&1
+        if ($LASTEXITCODE -ne 0) { $failed.Add("$plat/pascal"); continue }
         Write-Host "  OK" -ForegroundColor Green
     }
 
-    # ── extra grammars ────────────────────────────────────────────────────────
     if ($Grammars) {
-        Write-Host "  Extra grammars:"
-        if (-not (Test-Path $GrammarsCache)) {
-            New-Item -ItemType Directory -Path $GrammarsCache -Force | Out-Null
-        }
+        if (-not (Test-Path $GrammarsCache)) { New-Item -ItemType Directory -Path $GrammarsCache -Force | Out-Null }
         foreach ($lang in $ExtraGrammars.Keys) {
             $g = $ExtraGrammars[$lang]
-            if (-not (Ensure-GrammarRepo $lang $g.Repo)) {
-                Write-Host "    FAILED to clone $lang" -ForegroundColor Red
-                $failed.Add("$plat/$lang-clone"); continue
+            $success = Ensure-GrammarRepo $lang $g.Repo
+            if ($success) {
+                $success = Build-Grammar $lang $g.SrcSubDir $outDir $info
             }
-            if (-not (Build-Grammar $lang $g.SrcSubDir $outDir $info)) {
-                $failed.Add("$plat/$lang")
-            }
+            if (-not $success) { $failed.Add("$plat/$lang") }
         }
     }
-
-    # ── deploy to Delphi output directories ───────────────────────────────────
     Deploy-Libs $plat $outDir
 }
 
-Write-Host ""
 if ($failed.Count -gt 0) {
     Write-Host "Failed builds: $($failed -join ', ')" -ForegroundColor Red
     exit 1
-}
-else {
+} else {
     Write-Host "All builds completed successfully." -ForegroundColor Green
-    Write-Host "Output: $OutRoot"
 }
