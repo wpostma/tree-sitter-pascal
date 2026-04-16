@@ -34,10 +34,10 @@ jobs:
         with:
           version: 0.13.0
 
-      - name: Build core, Pascal, and extra grammars (Win32 & Win64)
+      - name: Build core and Pascal grammar (Win32 & Win64)
         shell: pwsh
         run: |
-          .\scripts\build.ps1 -Platforms Win32,Win64 -Grammars
+          .\scripts\build.ps1 -Platforms Win32,Win64
 
       - name: Rename DLLs with platform suffix for release assets
         shell: pwsh
@@ -81,10 +81,10 @@ jobs:
         with:
           version: 0.13.0
 
-      - name: Build core, Pascal, and extra grammars (Linux64)
+      - name: Build core and Pascal grammar (Linux64)
         shell: pwsh
         run: |
-          .\scripts\build.ps1 -Platforms Linux64 -Grammars
+          .\scripts\build.ps1 -Platforms Linux64
 
       - name: Rename .so files with platform suffix
         shell: pwsh
@@ -119,10 +119,10 @@ jobs:
         with:
           version: 0.13.0
 
-      - name: Build core, Pascal, and extra grammars (macOS-x64 & macOS-arm64)
+      - name: Build core and Pascal grammar (macOS-x64 & macOS-arm64)
         shell: pwsh
         run: |
-          .\scripts\build.ps1 -Platforms macOS-x64,macOS-arm64 -Grammars
+          .\scripts\build.ps1 -Platforms macOS-x64,macOS-arm64
 
       - name: Rename dylibs with platform suffix
         shell: pwsh
