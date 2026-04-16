@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tree-sitter grammar for Pascal/Delphi/FreePascal. Generates a high-performance incremental parser from `grammar.js` for use in syntax highlighting, code navigation, and structural analysis.
 
+- **Dialect Support:** Delphi and FreePascal specific features (generics, anonymous procedures, RTTI attributes).
+- **Advanced Constructs:** Classes, records, interfaces, class helpers, nested declarations, and variant records.
+- **Interop:** FPC PasCocoa extensions for Objective-C interoperability.
+- **Performance:** Optimized for tree-sitter with specific handling for common preprocessor patterns.
+
 ## Build & Test Commands
 
 ```bash
